@@ -124,30 +124,44 @@ function makeCard(m){
 }
 
 function render(data){
-  let label = data.count + (data.count === 1 ? ' match' : ' matches');
+  let countLabel = data.count + (data.count === 1 ? ' match' : ' matches');
   if (data.generated_at){
-    const d = new Date(data.generated_at);
-    if (!isNaN(d)) label += ' · updated ' + d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const g = new Date(data.generated_at);
+    if (!isNaN(g)) countLabel += ' · updated ' + g.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
-  countEl.textContent = label;
+  countEl.textContent = countLabel;
   if (!data.matches.length){ statusEl.textContent = 'No highlights published yet.'; statusEl.className = 'note'; statusEl.style.display = 'block'; listEl.innerHTML = ''; return; }
   statusEl.style.display = 'none';
   listEl.innerHTML = '';
-  let day = null, grid = null;  // group consecutive matches by date (list is ordered)
+
+  // Group by the VIEWER'S LOCAL calendar day, derived from each match's UTC
+  // kickoff — newest day first, chronological within a day.
+  const byDay = new Map();  // localDayKey -> { label, matches: [{ m, t }] }
   for (const m of data.matches){
-    const label = m.date || 'Recent';
-    if (label !== day){
-      day = label;
-      const section = document.createElement('section');
-      section.className = 'day';
-      const h = document.createElement('h2');
-      h.className = 'day-label'; h.textContent = label;
-      grid = document.createElement('div');
-      grid.className = 'grid';
-      section.append(h, grid);
-      listEl.appendChild(section);
+    const d = new Date(m.kickoff);
+    const valid = !isNaN(d);
+    const key = valid ? (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()) : -1;
+    if (!byDay.has(key)){
+      byDay.set(key, {
+        label: valid ? d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : 'Date TBD',
+        matches: []
+      });
     }
-    grid.appendChild(makeCard(m));
+    byDay.get(key).matches.push({ m, t: valid ? d.getTime() : Infinity });
+  }
+
+  for (const key of [...byDay.keys()].sort((a, b) => b - a)){  // newest day first
+    const group = byDay.get(key);
+    group.matches.sort((a, b) => a.t - b.t);  // chronological within the day
+    const section = document.createElement('section');
+    section.className = 'day';
+    const h = document.createElement('h2');
+    h.className = 'day-label'; h.textContent = group.label;
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    for (const { m } of group.matches) grid.appendChild(makeCard(m));
+    section.append(h, grid);
+    listEl.appendChild(section);
   }
 }
 
