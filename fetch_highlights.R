@@ -64,12 +64,18 @@ fetch_fixtures = function() {
     home = tryCatch(m$Home$TeamName[[1]]$Description, error = function(e) NULL)
     away = tryCatch(m$Away$TeamName[[1]]$Description, error = function(e) NULL)
     if (is.null(home) || is.null(away)) next  # placeholder fixture (teams TBD)
+    # Round/group label, e.g. "Group A" (group stage) or "Round of 16" (knockout).
+    grp = tryCatch(m$GroupName[[1]]$Description, error = function(e) NULL)
+    if (!is.null(grp) && !nzchar(grp)) grp = NULL
+    stg = tryCatch(m$StageName[[1]]$Description, error = function(e) NULL)
+    if (identical(stg, "First Stage")) stg = NULL  # not useful; prefer the group
     matches[[length(matches) + 1]] = list(
       matchId = as.character(m$IdMatch),
       stageId = as.character(m$IdStage),
       kickoff = m$Date %||% NA_character_,
       home = home,
-      away = away
+      away = away,
+      group = grp %||% stg %||% NA_character_
     )
   }
   # sort ascending by kickoff
@@ -159,7 +165,8 @@ build_matches = function() {
       page_url = info$url,
       match_id = m$matchId,
       kickoff = m$kickoff,
-      date = date_label(m$kickoff) %||% NA_character_
+      date = date_label(m$kickoff) %||% NA_character_,
+      group = m$group %||% NA_character_
     )
   }
 
