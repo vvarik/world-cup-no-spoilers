@@ -111,8 +111,7 @@ function makeCard(m){
   const a = document.createElement('a');
   a.className = 'card';
   a.href = m.page_url;
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
+  a.rel = 'noreferrer';
   a.innerHTML =
     '<span class="fixture">' +
       '<span class="t home"></span><span class="sep">–</span><span class="t away"></span>' +
