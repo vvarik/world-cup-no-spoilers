@@ -129,7 +129,7 @@ function render(data){
   let label = data.count + (data.count === 1 ? ' match' : ' matches');
   if (data.generated_at){
     const d = new Date(data.generated_at);
-    if (!isNaN(d)) label += ' · updated ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    if (!isNaN(d)) label += ' · updated ' + d.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   }
   countEl.textContent = label;
   if (!data.matches.length){ statusEl.textContent = 'No highlights published yet.'; statusEl.className = 'note'; statusEl.style.display = 'block'; listEl.innerHTML = ''; return; }
