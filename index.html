@@ -106,6 +106,17 @@ const listEl = document.getElementById('list');
 const statusEl = document.getElementById('status');
 const countEl = document.getElementById('count');
 
+// Knockout rounds (FIFA's StageName strings) → compact labels. Group-stage
+// labels ("Group A", from GroupName) aren't in here, so they show in full.
+const ROUND_ABBR = {
+  'Round of 32': 'R32',
+  'Round of 16': 'R16',
+  'Quarter-final': 'QF',
+  'Semi-final': 'SF',
+  'Play-off for third place': '3rd place',
+  'Final': 'Final'
+};
+
 // Each match links straight to FIFA's /en/watch/<id> page — a clean video page
 // whose title has no score (unlike the match-report article, which does).
 function makeCard(m){
@@ -119,7 +130,7 @@ function makeCard(m){
       '<span class="t home"></span><span class="sep">–</span><span class="t away"></span>' +
     '</span>' +
     '<span class="play" aria-hidden="true">↗</span>';
-  a.querySelector('.group').textContent = m.group || '';
+  a.querySelector('.group').textContent = ROUND_ABBR[m.group] || m.group || '';
   a.querySelector('.home').textContent = m.teams[0];
   a.querySelector('.away').textContent = m.teams[1];
   a.setAttribute('aria-label', (m.group ? m.group + ': ' : '') + 'Open highlights on FIFA: ' + m.teams[0] + ' versus ' + m.teams[1]);
