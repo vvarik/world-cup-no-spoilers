@@ -1,0 +1,9 @@
+_site/
+data/cache/
+data/matches.json
+data/fifa_videos.json
+data/server.log
+data/*.html
+.Rhistory
+.RData
+.Rproj.user/

@@ -1,0 +1,171 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>World Cup 2026 — Spoiler-Free Highlights</title>
+<style>
+  :root {
+    --bg: #f3f4f6; --card: #ffffff; --fg: #0e1116; --muted: #545b66; --faint: #8a909b;
+    --line: #dcdee3; --soft: #eef0f2; --accent: #0a6e44; --accent-soft: #e2f1ea;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: 420px; margin: 0 auto; padding: 0 20px; }
+
+  header { border-bottom: 1px solid var(--line); }
+  .top {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 14px; padding: 20px 0 14px; flex-wrap: wrap;
+  }
+  h1 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.02em; }
+  .sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 52ch; }
+  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .count { color: var(--faint); font-size: 13px; white-space: nowrap; }
+  .ghost {
+    font: inherit; font-size: 13px; cursor: pointer; color: var(--fg);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+    background: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 6px 14px; transition: background .15s, border-color .15s;
+  }
+  .ghost:hover { background: var(--soft); border-color: #c4c7cd; }
+  .ghost:disabled { color: var(--faint); cursor: progress; }
+
+  main { padding: 2px 0 48px; }
+  .day { margin-top: 15px; }
+  .day-label {
+    margin: 0 0 6px; font-size: 11px; font-weight: 700; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .grid { display: grid; gap: 6px; grid-template-columns: 1fr; }
+  .card {
+    text-decoration: none; color: inherit; cursor: pointer;
+    display: flex; flex-direction: row; align-items: center; gap: 10px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 8px 11px; transition: border-color .12s, box-shadow .12s;
+  }
+  .card:hover { border-color: #b9bcc4; box-shadow: 0 4px 14px -8px rgba(14,17,22,.3); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .fixture { flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; }
+  .t { font-weight: 600; font-size: 13.5px; letter-spacing: -0.01em; }
+  .t.home { flex: 1; text-align: right; }
+  .t.away { flex: 1; text-align: left; }
+  .sep { color: var(--faint); font-size: 12px; }
+  .play {
+    flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--soft); color: var(--muted);
+    font-size: 10px; transition: background .12s, color .12s;
+  }
+  .card:hover .play { background: var(--accent); color: #fff; }
+
+  .note { padding: 60px 10px; text-align: center; color: var(--muted); font-size: 14px; }
+  .note.err { color: #b4452f; }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 8px; padding: 18px 0 40px;
+    color: var(--faint); font-size: 11.5px; line-height: 1.5;
+  }
+  footer a { color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .ghost, .play { transition: none; }
+  }
+</style>
+
+<header>
+  <div class="wrap top">
+    <div class="brand">
+      <h1>World Cup 2026 Highlights</h1>
+      <p class="sub">No scores, no spoilers — pick a match; it opens FIFA's highlight page (score-free title).</p>
+    </div>
+    <div class="actions">
+      <span class="count" id="count"></span>
+      <a class="ghost" id="allLink" target="_blank" rel="noopener"
+         href="https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/highlights/all-matches">All on FIFA ↗</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="status" class="note">Loading matches…</div>
+  <div id="list"></div>
+</main>
+
+<footer class="wrap">
+  Unofficial fan project — not affiliated with, authorized, or endorsed by FIFA.
+  All highlights are hosted by and link to
+  <a href="https://www.fifa.com" target="_blank" rel="noopener">FIFA.com</a>.
+  “FIFA” and “FIFA World Cup” are trademarks of FIFA.
+</footer>
+
+<script>
+const listEl = document.getElementById('list');
+const statusEl = document.getElementById('status');
+const countEl = document.getElementById('count');
+
+// Each match links straight to FIFA's /en/watch/<id> page — a clean video page
+// whose title has no score (unlike the match-report article, which does).
+function makeCard(m){
+  const a = document.createElement('a');
+  a.className = 'card';
+  a.href = m.page_url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  a.innerHTML =
+    '<span class="fixture">' +
+      '<span class="t home"></span><span class="sep">–</span><span class="t away"></span>' +
+    '</span>' +
+    '<span class="play" aria-hidden="true">↗</span>';
+  a.querySelector('.home').textContent = m.teams[0];
+  a.querySelector('.away').textContent = m.teams[1];
+  a.setAttribute('aria-label', 'Open highlights on FIFA: ' + m.teams[0] + ' versus ' + m.teams[1]);
+  return a;
+}
+
+function render(data){
+  let label = data.count + (data.count === 1 ? ' match' : ' matches');
+  if (data.generated_at){
+    const d = new Date(data.generated_at);
+    if (!isNaN(d)) label += ' · updated ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+  countEl.textContent = label;
+  if (!data.matches.length){ statusEl.textContent = 'No highlights published yet.'; statusEl.className = 'note'; statusEl.style.display = 'block'; listEl.innerHTML = ''; return; }
+  statusEl.style.display = 'none';
+  listEl.innerHTML = '';
+  let day = null, grid = null;  // group consecutive matches by date (list is ordered)
+  for (const m of data.matches){
+    const label = m.date || 'Recent';
+    if (label !== day){
+      day = label;
+      const section = document.createElement('section');
+      section.className = 'day';
+      const h = document.createElement('h2');
+      h.className = 'day-label'; h.textContent = label;
+      grid = document.createElement('div');
+      grid.className = 'grid';
+      section.append(h, grid);
+      listEl.appendChild(section);
+    }
+    grid.appendChild(makeCard(m));
+  }
+}
+
+async function load(){
+  // Works both when served from _site/ (matches.json alongside) and from the
+  // repo root (matches.json under data/).
+  try {
+    let r = await fetch('./matches.json');
+    if (!r.ok) r = await fetch('./data/matches.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    render(await r.json());
+  } catch (e){
+    statusEl.textContent = 'Could not load matches: ' + e.message;
+    statusEl.className = 'note err'; statusEl.style.display = 'block';
+  }
+}
+
+load();
+</script>
