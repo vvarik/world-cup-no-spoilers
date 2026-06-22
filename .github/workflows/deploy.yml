@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: '0 * * * *'   # every hour during the tournament
+    - cron: '23 * * * *'   # hourly, off the congested top-of-hour for reliability
   workflow_dispatch: {}      # manual "Run workflow" button
 
 # Allow the workflow to publish to GitHub Pages.
