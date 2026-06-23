@@ -166,7 +166,7 @@ function render(data){
 
   for (const key of [...byDay.keys()].sort((a, b) => b - a)){  // newest day first
     const group = byDay.get(key);
-    group.matches.sort((a, b) => a.t - b.t);  // chronological within the day
+    group.matches.sort((a, b) => b.t - a.t);  // most-recent kickoff first within the day
     const section = document.createElement('section');
     section.className = 'day';
     const h = document.createElement('h2');
